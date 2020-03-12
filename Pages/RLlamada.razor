@@ -1,0 +1,180 @@
+﻿@page "/Registro"
+
+
+<div class="Container">
+
+    <EditForm Model="@Llamada" OnInvalidSubmit="@Guardar">
+        <DataAnnotationsValidator />
+
+        <div class="form-group">
+            <label>Llamada Id</label>
+            <InputNumber @bind-Value="@Llamada.LlamadaId" class="form-control"></InputNumber>
+            <button type="button" class="btn btn-outline-primary" @onclick="Buscar">Buscar</button>
+            <ValidationMessage For="@(() => Llamada.LlamadaId)" />
+        </div>
+
+        <div class="form-group">
+            <label>Descripcion</label>
+            <InputText @bind-Value="@Llamada.Descripcion" class="form-control"></InputText>
+        </div>
+        <br />
+
+        <div class="form-row">
+            <div class="col-3 ">
+                <label>Problema</label>
+                <InputText @bind-Value="@detalle.Problema" class="form-control" />
+            </div>
+
+                <label>Solucion</label>
+                <div class="col-3" >
+                    <InputText @bind-Value="@detalle.Solucion" class="form-control" />
+                        <button type="button" class="btn btn-primary" @onclick="AgregarDetalle">Agregar</button>
+                    <p class="text-info">@Detallemsg</p>
+                </div>
+            </div>
+
+
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Problema</th>
+                            <th scope="col">Solucion</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Llamada.Detalles)
+                        {
+                        <tr>
+                            <td scope="row">@item.Problema</td>
+                            <td>@item.Solucion</td>
+
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+
+            <ValidationSummary />
+            <p class="text-info">@Mensaje</p>
+
+            <div class="form-group">
+                <button type="button" class="btn btn-primary" @onclick="Limpiar">Limpiar</button>
+                <button type="submit" class="btn btn-success">Guardar</button>
+                <button type="button" class="btn btn-danger" @onclick="Eliminar">Eliminar</button>
+            </div>
+
+    </EditForm>
+</div>
+
+
+@code
+{
+
+    public Llamadas Llamada = new Llamadas();
+    public LlamadasDetalle detalle;
+    public string Mensaje;
+    public string Detallemsg;
+    public LlamadaController controller = new LlamadaController();
+
+    protected override void OnInitialized()
+    {
+        Llamada = new Llamadas();
+        detalle = new LlamadasDetalle();
+    }
+
+    private void Limpiar()
+    {
+        Llamada = new Llamadas();
+
+
+    }
+
+    private void Guardar()
+    {
+       try
+        {
+
+            if (controller.Guardar(Llamada))
+            {
+                Llamada = new Llamadas();
+                Mensaje = "Guardado correctamente";
+            }
+            else
+            {
+                Mensaje = "No se pudo guardar";
+            }
+        }
+        catch (Exception)
+        {
+
+            throw;
+        }
+       
+    }
+
+
+    private void Eliminar()
+    {
+        try
+        {
+            Llamadas llamada = controller.Buscar(Llamada.LlamadaId);
+
+            if (llamada != null)
+            {
+                controller.Eliminar(llamada.LlamadaId);
+                Mensaje = "Eliminado correctamente";
+
+            }
+            else
+            {
+                Mensaje = "No se pudo encontrar, no existe";
+            }
+        }
+        catch (Exception)
+        {
+
+            throw;
+        }
+    }
+
+    public void Buscar()
+	{
+		var llamada = controller.Buscar(Llamada.LlamadaId);
+
+		if (llamada != null)
+		{
+
+			Llamada = llamada;
+		}
+		else
+		{
+			Limpiar();
+			Mensaje = "No se encontro";
+		}
+	}
+
+    private void AgregarDetalle()
+    {
+        if (detalle.Problema == null)
+        {
+            Detallemsg = "Digite el problema";
+            return;
+        }
+
+        if (detalle.Solucion == null)
+        {
+            Detallemsg = "Digite la Solucion";
+            return;
+        }
+
+        Llamada.Detalles.Add(new LlamadasDetalle()
+        { Problema = detalle.Problema,
+            Solucion = detalle.Solucion
+        });
+    }
+
+
+}
